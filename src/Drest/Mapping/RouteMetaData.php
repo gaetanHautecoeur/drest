@@ -160,6 +160,16 @@ class RouteMetaData implements \Serializable
     }
 
     /**
+     * get the route conditions
+     * @return array
+     */
+            
+    public function getRouteConditions()
+    {
+        return $this->route_conditions;
+    }
+
+    /**
      * Get the name of this route
      * @return string $name
      */
