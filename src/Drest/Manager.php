@@ -156,7 +156,7 @@ class Manager
             Event\Events::PRE_DISPATCH,
             new Event\PreDispatchArgs($this->service)
         );
-
+        
         $rethrowException = false;
         try {
             $this->execute($namedRoute, $routeParams);
@@ -168,7 +168,7 @@ class Manager
                 $this->handleError($e);
             }
         }
-
+        
         // trigger a postDispatch event
         $this->getEventManager()->dispatchEvent(
             Event\Events::POST_DISPATCH,
@@ -193,7 +193,7 @@ class Manager
         if (($route = $this->determineRoute($namedRoute, $routeParams)) instanceof RouteMetaData) {
             // Get the representation to be used - always successful or it throws an exception
             $representation = $this->getDeterminedRepresentation($route);
-
+            
             // Configure push / pull exposure fields
             switch ($this->request->getHttpMethod()) {
                 // Match on content option

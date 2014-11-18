@@ -367,13 +367,14 @@ class ExposeFields implements \Iterator
         if ($depth > 0) {
             $metaData = $em->getClassMetadata($class);
             $fields = $metaData->getColumnNames();
-
+            
             if (($depth - 1) > 0) {
                 --$depth;
                 foreach ($metaData->getAssociationMappings() as $key => $assocMapping) {
-                    if (!in_array($assocMapping['targetEntity'], $this->registered_expose_classes) && (is_null(
-                                $fetchType
-                            ) || ($assocMapping['fetch'] == $fetchType))
+                    if (
+                            (!in_array($assocMapping['targetEntity'], $this->registered_expose_classes) || $assocMapping['targetEntity'] == $class) 
+                            && 
+                            (is_null($fetchType) || ($assocMapping['fetch'] <= $fetchType))
                     ) {
                         $this->processExposeDepth(
                             $fields[$key],

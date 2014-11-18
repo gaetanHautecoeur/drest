@@ -132,8 +132,11 @@ abstract class AbstractAction
         if (empty($fields)) {
             return $qb;
         }
-
-        $rootAlias = (is_null($rootAlias)) ? self::getAlias($classMetaData->getName()) : $rootAlias;
+        //recuperation de l'alias du premier "from"
+        if(is_null($rootAlias)){
+            $rootAlias = $qb->getRootAliases();
+            $rootAlias = $rootAlias[0];
+        }
 
         $addedKeyFields = (array) $addedKeyFields;
         $ormAssociationMappings = $classMetaData->getAssociationMappings();
@@ -279,12 +282,7 @@ abstract class AbstractAction
         // Run any attached handle function
         if ($matchedRoute->hasHandleCall()) {
             $handleMethod = $matchedRoute->getHandleCall();
-
-            if ($matchedRoute->getInjectRequestIntoHandle()) {
-                $object->$handleMethod($this->getRepresentation()->toArray(false), $this->getRequest());
-            } else {
-                $object->$handleMethod($this->getRepresentation()->toArray(false));
-            }
+            $object->$handleMethod($this->getRepresentation()->toArray(false), $this->getRequest(), $this->getEntityManager());
         }
     }
 
@@ -294,6 +292,7 @@ abstract class AbstractAction
      * @param  string $fieldName - The field the relation is on. Default to root when using top level.
      * @return string
      */
+    public static $alias = 0;
     public static function getAlias($className, $fieldName = 'rt')
     {
         $classNameParts = explode('\\', $className);
@@ -308,6 +307,6 @@ abstract class AbstractAction
             $hash = preg_replace('/[0-9_\/]+/', '', base64_encode(sha1($fieldName)));
         }
 
-        return strtolower(preg_replace("/[^a-zA-Z_\s]/", "", substr($hash, 0, 5) . '_' . $className));
+        return strtolower(preg_replace("/[^a-zA-Z_\s]/", "", substr($hash, 0, 5) . '_' . $className)).self::$alias++;
     }
 }
