@@ -26,7 +26,16 @@ class GetElement extends AbstractAction
         }
 
         try {
-            $resultSet = $this->createResultSet($qb->getQuery()->getSingleResult(ORM\Query::HYDRATE_ARRAY));
+            $objetArray = $qb->getQuery()->getSingleResult(ORM\Query::HYDRATE_ARRAY);
+            if (($location = $this->getMatchedRoute()->getOriginLocation(
+                    $objetArray,
+                    $this->getRequest()->getUrl(),
+                    $this->getEntityManager()
+                )) !== false
+            ) {
+                $objetArray['_location'] = $location;
+            }
+            $resultSet = $this->createResultSet($objetArray);
         } catch (\Exception $e) {
             return $this->handleError($e, Response::STATUS_CODE_404);
         }

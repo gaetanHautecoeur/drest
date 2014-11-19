@@ -49,7 +49,14 @@ class Service
      * @var AbstractHandler $error_handler
      */
     protected $error_handler;
-
+    
+    /**
+     * TODO
+     * Init the service_action, it allows to execute a action inside after/inside a other
+     */
+    public function resetAction(){
+        $this->service_action = null;
+    }
 
     /**
      * Initialise a new instance of a Drest service
@@ -93,7 +100,7 @@ class Service
      * @throws DrestException
      * @return AbstractAction $action
      */
-    protected function getActionInstance()
+    public function getActionInstance()
     {
         if (!isset($this->service_action)) {
             $actionClass = $this->matched_route->getActionClass();

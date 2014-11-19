@@ -422,14 +422,18 @@ class RouteMetaData implements \Serializable
 
     /**
      * Generate the location string from the provided object
-     * @param  object        $object
+     * @param  object|array        $object
      * @param  string        $url    - the Url to be prepended to the location
      * @param  EntityManager $em     - Optionally pass the entity manager to assist in determining a GET origin location
      * @return string|false
      */
     public function getOriginLocation($object, $url, EntityManager $em = null)
     {
-        $exposedObjectArray = self::getObjectVarsArray($object);
+        if(is_object($object)){
+            $exposedObjectArray = self::getObjectVarsArray($object);
+        }else{
+            $exposedObjectArray = $object;
+        }
         if (($route = $this->getOriginRoute($em)) !== null) {
             if (!is_null($em)) {
                 $pattern = $route->getRoutePattern();

@@ -41,7 +41,13 @@ class PutElement extends AbstractAction
                 $this->getEntityManager()
             );
             $this->getResponse()->setStatusCode(Response::STATUS_CODE_200);
-            $resultSet = ResultSet::create(array('location' => ($location) ? $location : 'unknown'), 'response');
+            
+            //TODO : retourne l'element a partir de son URL
+            $request = \DrestCommon\Request\Request::create(\Symfony\Component\HttpFoundation\Request::create($location, 'GET'));
+            $manager = $this->getService()->getDrestManager();
+            $manager->setRequest($request);
+            $this->getService()->resetAction();
+            return $this->getService()->getActionInstance()->execute();
         } catch (\Exception $e) {
             return $this->handleError($e, Response::STATUS_CODE_500);
         }
