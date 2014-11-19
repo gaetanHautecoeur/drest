@@ -47,7 +47,6 @@ class GetCollection extends AbstractAction
             $resultSet = $this->createResultSet($objetsArray);
             
             $paginator = new Paginator($qb->getQuery(), false);
-            $paginator->getIterator();
             $resultSet['_paginate'] = array(
                 '_page' => $page,
                 '_nb_page' => ceil($paginator->count() / $nb_page),
