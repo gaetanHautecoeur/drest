@@ -25,12 +25,11 @@ class GetCollection extends AbstractAction
         }
         
         //gestion de la collection
-        $nb_page = 25;
         $limit = $this->getRequest()->getQuery('_max');
-        $limit = ((int) $limit)?$limit:$nb_page;
+        $nb_page = ((int) $limit)?$limit:25;
         $page = $this->getRequest()->getQuery('_page'); 
         $page = ((int) $page)?$page:1;
-        $qb->setMaxResults($limit);
+        $qb->setMaxResults($nb_page);
         $qb->setFirstResult(($page-1)*$nb_page);
         try {
             $objetsArray = $qb->getQuery()->getResult(ORM\Query::HYDRATE_ARRAY);
