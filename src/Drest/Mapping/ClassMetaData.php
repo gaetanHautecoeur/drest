@@ -185,7 +185,7 @@ class ClassMetaData implements \Serializable
     public function getElementName()
     {
         // attempt to pull an entity name from the class
-        $classNameParts = explode('\\', $this->className);
+        $classNameParts = explode('\\', \Doctrine\Common\Inflector\Inflector::tableize($this->className));
         if (is_array($classNameParts)) {
             return strtolower(Inflector::singularize(array_pop($classNameParts)));
         }
@@ -210,7 +210,7 @@ class ClassMetaData implements \Serializable
     public function getCollectionName()
     {
         $elementName = $this->getElementName();
-
+        
         return Inflector::pluralize($elementName);
     }
 
