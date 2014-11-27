@@ -188,7 +188,7 @@ class Manager
      * @param  array                             $routeParams - Route parameters to be used for dispatching a namedRoute request
      * @throws Route\NoMatchException|\Exception
      */
-    protected function execute($namedRoute = null, array $routeParams = array())
+    public function execute($namedRoute = null, array $routeParams = array())
     {
         if (($route = $this->determineRoute($namedRoute, $routeParams)) instanceof RouteMetaData) {
             // Get the representation to be used - always successful or it throws an exception
@@ -228,7 +228,7 @@ class Manager
      * @return RouteMetaData|bool                $route - if false no route could be matched
      *                                                       (ideally the response should be returned in this instance - fail fast)
      */
-    protected function determineRoute($namedRoute = null, array $routeParams = array())
+    public function determineRoute($namedRoute = null, array $routeParams = array())
     {
         // dispatch preRoutingAction event
         $this->getEventManager()->dispatchEvent(Event\Events::PRE_ROUTING, new Event\PreRoutingArgs($this->service));
@@ -564,7 +564,9 @@ class Manager
 
         return $this->request;
     }
-
+    public function getService(){
+        return $this->service;
+    }
     /**
      * Set the request object
      * @param Request $request

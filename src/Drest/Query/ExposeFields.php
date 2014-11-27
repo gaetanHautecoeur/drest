@@ -76,7 +76,21 @@ class ExposeFields implements \Iterator
     public function configureExposeDepth(EntityManager $em, $exposureDepth = 0, $exposureRelationsFetchType = null)
     {
         if (!empty($this->route_expose)) {
-            $this->fields = $this->route_expose;
+            if(in_array('*', $this->route_expose)){
+                $this->processExposeDepth(
+                    $this->fields,
+                    $this->route->getClassMetaData()->getClassName(),
+                    $em,
+                    $exposureDepth,
+                    $exposureRelationsFetchType
+                );
+            }
+            foreach($this->route_expose as $field){
+                if($field == '*'){
+                    continue;
+                }
+                $this->fields[] = $field;
+            }
         } else {
             $this->processExposeDepth(
                 $this->fields,
