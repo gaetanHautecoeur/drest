@@ -37,21 +37,33 @@ class ClassGenerator
     protected static $createBodyTemplate = '
 $objet = new self();
 foreach($<paramObjetArray> as $key => $value){
-<spaces>if(!is_array($value) && method_exists($objet, \'set\'.ucfirst($key))){
-<spaces><spaces>$methodSet = \'set\'.ucfirst($key);
-<spaces><spaces>$objet->$methodSet($value);
-<spaces>}elseif(is_array($value)){
 <createRelationObjet>
+<spaces>if(method_exists($objet, \'set\'.ucfirst($key))){
+<spaces><spaces>$objet->$key = $value;
 <spaces>}
 }
 return $objet;
 ';
-    protected static $createRelationObjet = '
-<spaces><spaces>if($key == \'<nameRelation>\'){
+    protected static $createRelationObjetOne = '
+<spaces>if($key == \'<nameRelation>\'){
+<spaces><spaces>$child = null;
+<spaces><spaces>if(!is_null($value)){
 <spaces><spaces><spaces>$child = <classRelation>::create($value);
-<spaces><spaces><spaces>$methodSet = \'set\'.ucfirst($key);
-<spaces><spaces><spaces>$objet->$methodSet($child);
-<spaces><spaces>}';
+<spaces><spaces>}
+<spaces><spaces>$objet->$key = $child;
+<spaces><spaces>continue;
+<spaces>}';
+    protected static $createRelationObjetMany = '
+<spaces>if($key == \'<nameRelation>\'){
+<spaces><spaces>$children = array();
+<spaces><spaces>if(!is_null($value)){
+<spaces><spaces><spaces>foreach($value as $child){
+<spaces><spaces><spaces><spaces>$children[] = <classRelation>::create($child);
+<spaces><spaces><spaces>}
+<spaces><spaces>}
+<spaces><spaces>$objet->$key = $children;
+<spaces><spaces>continue;
+<spaces>}';
     /**
      * CG classes generated from routeMetaData
      * @var array $classes - uses className as the key
@@ -89,6 +101,8 @@ return $objet;
                 $expose = array_merge_recursive($expose, $routeMetaData->getExpose());
             }
             $this->recurseParams($expose, $classMetaData->getClassName());
+
+            $this->classes[$classMetaData->getClassName()]->addMethods(array($this->createGetIdentifier($this->em->getClassMetadata($classMetaData->getClassName()))));
         }
 
         serialize($this->classes);
@@ -159,6 +173,19 @@ EOT;
         $this->classes[$fullClassName] = $cg;
     }
 
+    private function createGetIdentifier($ormClassMetaData){
+        $identifiers = $ormClassMetaData->getIdentifier();
+        $method = new Generator\MethodGenerator();
+        $method->setDocBlock('@return array ');
+        $body = 'return array(';
+        foreach($ormClassMetaData->getIdentifier() as $id){
+            $body .= '$this->'.$id.',';
+        }
+        $body .= ');';
+        $method->setBody($body);
+        $method->setName('getIdentifier');
+        return $method;
+    }
     /**
      * Build a ::create() method for each data class
      * @param  string                               $class - The name of the class returned (self)
@@ -198,19 +225,22 @@ EOT;
      * @return string
      */
     private function generateCreateFromAssociationMapping($ormClassMetadata){
-        $template = self::$createRelationObjet;
         $updateObjets = '';
         
         
         foreach ($ormClassMetadata->associationMappings as $associationMapping) {
-            if($associationMapping['type'] & ClassMetadataInfo::TO_MANY){
-                continue;
-            }
+
             $replacements = array(
-                '<nameRelation>'    => $associationMapping['fieldName'],
-                '<classRelation>'   => $this->getClassNameFromServerClass($associationMapping['targetEntity']),
-                '<referencedId>'    => $associationMapping['joinColumns'][0]['referencedColumnName']
+                '<nameRelation>' => $associationMapping['fieldName'],
+                '<classRelation>' => $this->getClassNameFromServerClass($associationMapping['targetEntity'])
             );
+
+            if($associationMapping['type'] & ClassMetadataInfo::TO_MANY){
+                $template = self::$createRelationObjetMany;
+            }else {
+                $replacements['<referencedId>'] =$associationMapping['joinColumns'][0]['referencedColumnName'];
+                $template = self::$createRelationObjetOne;
+            }
 
             $updateObjets .= str_replace(
                 array_keys($replacements),
@@ -275,8 +305,8 @@ EOT;
                 $method = new Generator\MethodGenerator();
                 $method->setDocBlock('@param ' . $targetClass . ' $' . $name);
 
-                //$method->setParameter(new ParameterGenerator($name, $this->getTargetType($targetClass)));
-                $method->setParameter(new ParameterGenerator($name));
+                $method->setParameter(new ParameterGenerator($name, $this->getTargetType($targetClass)));
+                //$method->setParameter(new ParameterGenerator($name));
                 $method->setBody('$this->' . $name . ' = $' . $name . ';');
                 $method->setName('set' . $this->camelCaseMethodName($name));
                 $methods[] = $method;
@@ -317,6 +347,13 @@ EOT;
                 $pluralMethod->setBody($body);
 
                 $methods[] = $pluralMethod;
+
+
+                $method = new Generator\MethodGenerator();
+                $method->setDocBlock('@return array $' . $name);
+                $method->setBody('return $this->' . $name . ';');
+                $method->setName('get' . $this->camelCaseMethodName($name));
+                $methods[] = $method;
                 break;
         }
 
