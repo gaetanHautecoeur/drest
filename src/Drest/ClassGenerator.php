@@ -103,6 +103,7 @@ return $objet;
             $this->recurseParams($expose, $classMetaData->getClassName());
 
             $this->classes[$classMetaData->getClassName()]->addMethods(array($this->createGetIdentifier($this->em->getClassMetadata($classMetaData->getClassName()))));
+            $this->classes[$classMetaData->getClassName()]->addMethods(array($this->createSetIdentifier($this->em->getClassMetadata($classMetaData->getClassName()))));
         }
 
         serialize($this->classes);
@@ -147,6 +148,9 @@ EOT;
         }
 
         foreach ($expose as $key => $value) {
+            if($value == '*'){
+                continue;
+            }
             if (is_array($value)) {
                 if ($ormClassMetaData->hasAssociation($key)) {
                     $this->handleAssocProperty($key, $cg, $ormClassMetaData);
@@ -184,6 +188,20 @@ EOT;
         $body .= ');';
         $method->setBody($body);
         $method->setName('getIdentifier');
+        return $method;
+    }
+
+    private function createSetIdentifier($ormClassMetaData){
+        $identifiers = $ormClassMetaData->getIdentifier();
+        $method = new Generator\MethodGenerator();
+        $method->setParameter(new ParameterGenerator('ids'));
+        $body = '';
+        foreach($ormClassMetaData->getIdentifier() as $cle => $id){
+            $body .= '$this->'.$id.' = $ids['.$cle.'];
+            ';
+        }
+        $method->setBody($body);
+        $method->setName('setIdentifier');
         return $method;
     }
     /**
@@ -305,8 +323,8 @@ EOT;
                 $method = new Generator\MethodGenerator();
                 $method->setDocBlock('@param ' . $targetClass . ' $' . $name);
 
-                $method->setParameter(new ParameterGenerator($name, $this->getTargetType($targetClass)));
-                //$method->setParameter(new ParameterGenerator($name));
+                //$method->setParameter(new ParameterGenerator($name, $this->getTargetType($targetClass)));
+                $method->setParameter(new ParameterGenerator($name));
                 $method->setBody('$this->' . $name . ' = $' . $name . ';');
                 $method->setName('set' . $this->camelCaseMethodName($name));
                 $methods[] = $method;
@@ -324,7 +342,8 @@ EOT;
                 $method->setDocBlock('@param ' . $targetClass . ' $' . $singledName);
 
 
-                $method->setParameter(new ParameterGenerator($singledName, $this->getTargetType($targetClass)));
+                //$method->setParameter(new ParameterGenerator($singledName, $this->getTargetType($targetClass)));
+                $method->setParameter(new ParameterGenerator($singledName));
 
                 $method->setBody('$this->' . $name . '[] = $' . $singledName . ';');
                 $singleMethodName = 'add' . $this->camelCaseMethodName($singledName);
