@@ -23,11 +23,11 @@ class GetCollection extends AbstractAction
             $qb->andWhere($classMetaData->getEntityAlias() . '.' . $key . ' = :' . $key);
             $qb->setParameter($key, $value);
         }
-        
+
         //gestion de la collection
         $limit = $this->getRequest()->getQuery('_max');
-        $nb_page = ((int) $limit)?$limit:25;
-        $page = $this->getRequest()->getQuery('_page'); 
+        $nb_page = ((int) $limit)?$limit:1000;
+        $page = $this->getRequest()->getQuery('_page');
         $page = ((int) $page)?$page:1;
         $qb->setMaxResults($nb_page);
         $qb->setFirstResult(($page-1)*$nb_page);
@@ -44,14 +44,6 @@ class GetCollection extends AbstractAction
                 }
             }
             $resultSet = $this->createResultSet($objetsArray);
-            
-            $paginator = new Paginator($qb->getQuery(), false);
-            $resultSet['_paginate'] = array(
-                '_page' => $page,
-                '_nb_page' => ceil($paginator->count() / $nb_page),
-                '_result_per_page' => $nb_page,
-                '_total' => $paginator->count()
-            );
         } catch (Exception $e) {
             return $this->handleError($e, Response::STATUS_CODE_404);
         }
