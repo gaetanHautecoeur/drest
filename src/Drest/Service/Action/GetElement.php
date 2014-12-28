@@ -24,7 +24,8 @@ class GetElement extends AbstractAction
             $qb->andWhere($elementName . '.' . $key . ' = :' . $key);
             $qb->setParameter($key, $value);
         }
-
+        /** @var ORM\QueryBuilder $qb */
+        //echo $qb->getQuery()->getSQL();exit;
         try {
             $objetArray = $qb->getQuery()->getSingleResult(ORM\Query::HYDRATE_ARRAY);
             if (($location = $this->getMatchedRoute()->getOriginLocation(

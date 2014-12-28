@@ -29,8 +29,8 @@ class GetCollection extends AbstractAction
         $nb_page = ((int) $limit)?$limit:1000;
         $page = $this->getRequest()->getQuery('_page');
         $page = ((int) $page)?$page:1;
-        $qb->setMaxResults($nb_page);
-        $qb->setFirstResult(($page-1)*$nb_page);
+        //$qb->setMaxResults($nb_page);
+        //$qb->setFirstResult(($page-1)*$nb_page);
         try {
             $objetsArray = $qb->getQuery()->getResult(ORM\Query::HYDRATE_ARRAY);
             foreach($objetsArray as $cle => $objetArray){

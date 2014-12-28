@@ -375,19 +375,20 @@ class ExposeFields implements \Iterator
      * @param integer       $fetchType - The fetch type to be used
      * @param integer|null  $fetchType - The required fetch type of the relation
      */
+
     protected function processExposeDepth(&$fields, $class, EntityManager $em, $depth = 0, $fetchType = null)
     {
-        $this->registered_expose_classes[] = $class;
         if ($depth > 0) {
             $metaData = $em->getClassMetadata($class);
             $fields = $metaData->getColumnNames();
             
             if (($depth - 1) > 0) {
                 --$depth;
+                $this->registered_expose_classes[$depth][] = $class;
                 foreach ($metaData->getAssociationMappings() as $key => $assocMapping) {
                     if (
-                            (!in_array($assocMapping['targetEntity'], $this->registered_expose_classes) || $assocMapping['targetEntity'] == $class) 
-                            && 
+                            (!in_array($assocMapping['targetEntity'], $this->registered_expose_classes[$depth]) || $assocMapping['targetEntity'] == $class)
+                            &&
                             (is_null($fetchType) || ($assocMapping['fetch'] <= $fetchType))
                     ) {
                         $this->processExposeDepth(
@@ -399,6 +400,7 @@ class ExposeFields implements \Iterator
                         );
                     }
                 }
+                unset($this->registered_expose_classes[$depth]);
             }
         }
     }
