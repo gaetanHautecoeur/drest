@@ -20,6 +20,14 @@ class PostElement extends AbstractAction
             $em->persist($object);
             $em->flush($object);
 
+            //TODO permet de s'affranchir des problemeatiques utf8
+            $matchedRoute = $this->getMatchedRoute();
+            // Run any attached handle function
+            if ($matchedRoute->hasHandleCall()) {
+                $handleMethod = $matchedRoute->getHandleCall();
+                $object->$handleMethod($this->getRepresentation()->toArray(false), $this->getRequest(), $this->getEntityManager(), false);
+            }
+
             $this->getResponse()->setStatusCode(Response::STATUS_CODE_201);
             if (($location = $this->getMatchedRoute()->getOriginLocation(
                     $object,
@@ -29,7 +37,7 @@ class PostElement extends AbstractAction
             ) {
                 $this->getResponse()->setHttpHeader('Location', $location);
             }
-            
+
             //TODO : retourne l'element a partir de son URL
             $this->getService()->resetAction();
             $request = \Symfony\Component\HttpFoundation\Request::create($location, 'GET');
