@@ -253,7 +253,7 @@ EOT;
                 '<classRelation>' => $this->getClassNameFromServerClass($associationMapping['targetEntity'])
             );
 
-            if($associationMapping['type'] & ClassMetadataInfo::TO_MANY){
+            if(($associationMapping['type'] & ClassMetadataInfo::TO_MANY) || (($associationMapping['type'] & ClassMetadataInfo::TO_ONE) && !$associationMapping['isOwningSide'])){
                 $template = self::$createRelationObjetMany;
             }else {
                 $replacements['<referencedId>'] =$associationMapping['joinColumns'][0]['referencedColumnName'];
